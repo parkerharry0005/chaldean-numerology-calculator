@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chaldean Numerology Calculator — Find Your Destiny Number</title>
+<meta name="description" content="Free Chaldean numerology calculator. Enter a name to get its Destiny, Soul Urge and Personality numbers using the ancient Babylonian letter-value system, plus compound-number meanings.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161B2E;
+    --ink-2:#1F2542;
+    --parchment:#EFE6D3;
+    --parchment-dim:#DCD1B6;
+    --gold:#C6952B;
+    --gold-bright:#E4B24C;
+    --clay:#A8452B;
+    --line: rgba(239,230,211,0.14);
+    --max: 880px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--parchment);
+    font-family:'Work Sans', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    color:var(--parchment);
+    margin:0;
+  }
+  a{color:var(--gold-bright);}
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 24px;}
+  .wrap-wide{max-width:1080px; margin:0 auto; padding:0 24px;}
+
+  /* Background texture: faint radiating rings, like a sundial / astrolabe */
+  .sky{
+    position:fixed; inset:0; z-index:-1; overflow:hidden;
+    background:
+      radial-gradient(1200px 700px at 82% -10%, rgba(198,149,43,0.10), transparent 60%),
+      radial-gradient(900px 600px at -10% 30%, rgba(168,69,43,0.08), transparent 55%),
+      var(--ink);
+  }
+
+  /* Nav */
+  nav{
+    position:sticky; top:0; z-index:20;
+    background:rgba(22,27,46,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    max-width:1080px; margin:0 auto; padding:16px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 16px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Fraunces', serif; font-size:1.15rem; font-weight:600;
+    letter-spacing:0.01em;
+  }
+  .brand svg{flex-shrink:0;}
+  .navlinks{display:flex; gap:28px; list-style:none; margin:0; padding:0;}
+  .navlinks a{
+    color:var(--parchment-dim); text-decoration:none; font-size:0.94rem;
+    transition:color .15s ease;
+  }
+  .navlinks a:hover{color:var(--gold-bright);}
+  .navtoggle{display:none;}
+  @media (max-width:720px){
+    .navlinks{display:none;}
+  }
+
+  /* Hero */
+  header.hero{
+    padding: 76px 0 40px;
+    text-align:center;
+  }
+  .kicker{
+    color:var(--gold); font-size:0.82rem; letter-spacing:0.14em;
+    margin-bottom:18px; font-weight:500;
+  }
+  h1.display{
+    font-size: clamp(2.1rem, 5vw, 3.4rem);
+    line-height:1.12;
+    max-width:760px; margin:0 auto;
+  }
+  h1.display em{
+    font-style:italic; color:var(--gold-bright);
+  }
+  .sub{
+    max-width:560px; margin:22px auto 0; color:var(--parchment-dim);
+    font-size:1.05rem;
+  }
+
+  /* Calculator card */
+  .tablet{
+    max-width:640px; margin: 44px auto 0;
+    background: var(--ink-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding: 34px 30px 30px;
+    position:relative;
+  }
+  .tablet::before{
+    content:"";
+    position:absolute; inset:8px;
+    border:1px solid rgba(198,149,43,0.22);
+    border-radius:2px;
+    pointer-events:none;
+  }
+  .field-label{
+    display:block; text-align:left; font-size:0.82rem; color:var(--parchment-dim);
+    margin-bottom:8px;
+  }
+  .input-row{display:flex; gap:10px;}
+  #nameInput{
+    flex:1; padding:14px 16px; font-size:1.05rem;
+    background:var(--ink); border:1px solid var(--line); border-radius:3px;
+    color:var(--parchment); font-family:'Work Sans', sans-serif;
+  }
+  #nameInput:focus{outline:none; border-color:var(--gold);}
+  #nameInput::placeholder{color:#6b7290;}
+  .calc-btn{
+    padding:14px 22px; background:var(--gold); color:var(--ink); border:none;
+    border-radius:3px; font-weight:600; font-size:0.98rem; cursor:pointer;
+    font-family:'Work Sans', sans-serif;
+    transition:background .15s ease;
+    white-space:nowrap;
+  }
+  .calc-btn:hover{background:var(--gold-bright);}
+  .hint{font-size:0.8rem; color:#7d84a3; margin-top:9px; text-align:left;}
+
+  #results{
+    margin-top:28px; padding-top:26px; border-top:1px solid var(--line);
+    display:none; text-align:left;
+  }
+  #results.show{display:block;}
+  .result-name{
+    font-family:'Fraunces', serif; font-size:1.3rem; color:var(--gold-bright);
+    margin-bottom:20px;
+  }
+  .numbers-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;
+    margin-bottom:24px;
+  }
+  .numcard{
+    background:var(--ink); border:1px solid var(--line); border-radius:3px;
+    padding:16px 14px; text-align:center;
+  }
+  .numcard .label{font-size:0.76rem; color:var(--parchment-dim); margin-bottom:8px;}
+  .numcard .val{font-family:'Fraunces', serif; font-size:2rem; color:var(--gold-bright); line-height:1;}
+  .numcard .sub{font-size:0.72rem; color:#7d84a3; margin-top:6px;}
+
+  .compound-note{
+    background:rgba(198,149,43,0.08); border:1px solid rgba(198,149,43,0.25);
+    border-radius:3px; padding:16px 18px; font-size:0.94rem; margin-bottom:22px;
+  }
+  .compound-note strong{color:var(--gold-bright);}
+
+  details.breakdown summary{
+    cursor:pointer; font-size:0.9rem; color:var(--parchment-dim);
+    list-style:none; display:flex; align-items:center; gap:6px;
+  }
+  details.breakdown summary::-webkit-details-marker{display:none;}
+  details.breakdown summary::before{content:"▸"; color:var(--gold); font-size:0.75rem;}
+  details.breakdown[open] summary::before{content:"▾";}
+  .letter-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:0.88rem;}
+  .letter-table th, .letter-table td{
+    padding:8px 6px; text-align:center; border-bottom:1px solid var(--line);
+  }
+  .letter-table th{color:var(--parchment-dim); font-weight:500; font-size:0.76rem;}
+  .letter-table td.v9{color:var(--clay);}
+
+  /* Sections */
+  section{padding:64px 0;}
+  section.alt{background:var(--ink-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .section-head{max-width:640px; margin:0 auto 40px;}
+  .section-head .kicker{margin-bottom:10px;}
+  h2.display{font-size:clamp(1.5rem, 3vw, 2rem); margin-bottom:14px;}
+  .section-head p{color:var(--parchment-dim); font-size:1rem;}
+
+  .two-col{
+    display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start;
+  }
+  @media (max-width:760px){ .two-col{grid-template-columns:1fr;} }
+
+  .ref-table{width:100%; border-collapse:collapse;}
+  .ref-table th, .ref-table td{
+    padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; font-size:0.94rem;
+  }
+  .ref-table th{color:var(--gold); font-weight:500; font-size:0.8rem;}
+  .ref-table .num{font-family:'Fraunces', serif; font-size:1.1rem; color:var(--gold-bright); width:44px;}
+
+  .planet-note{font-size:0.88rem; color:var(--parchment-dim); margin-top:16px;}
+
+  /* Meanings grid */
+  .meanings-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+  }
+  @media (max-width:760px){ .meanings-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:480px){ .meanings-grid{grid-template-columns:1fr;} }
+  .meaning-card{
+    background:var(--ink); border:1px solid var(--line); border-radius:3px; padding:20px;
+    cursor:pointer; transition:border-color .15s ease;
+  }
+  .meaning-card:hover{border-color:var(--gold);}
+  .meaning-card .mnum{
+    font-family:'Fraunces', serif; font-size:1.8rem; color:var(--gold-bright); line-height:1;
+  }
+  .meaning-card .mtitle{font-size:0.86rem; color:var(--parchment-dim); margin:8px 0 10px;}
+  .meaning-card .mbody{
+    font-size:0.86rem; color:var(--parchment-dim); max-height:0; overflow:hidden;
+    transition:max-height .25s ease;
+  }
+  .meaning-card.open .mbody{max-height:200px;}
+  .meaning-card .mbody p{margin:0; padding-top:4px;}
+
+  /* Compound examples */
+  .compound-strip{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px;
+  }
+  .compound-item{
+    border-left:2px solid var(--gold); padding:6px 0 6px 16px;
+  }
+  .compound-item .cn{font-family:'Fraunces', serif; color:var(--gold-bright); font-size:1.3rem;}
+  .compound-item .ct{font-size:0.85rem; color:var(--parchment-dim); margin-top:2px;}
+
+  /* FAQ */
+  .faq-item{border-bottom:1px solid var(--line);}
+  .faq-item summary{
+    padding:20px 0; cursor:pointer; font-family:'Fraunces', serif; font-size:1.05rem;
+    list-style:none; display:flex; justify-content:space-between; align-items:center; gap:16px;
+  }
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:"+"; color:var(--gold); font-size:1.3rem; flex-shrink:0;}
+  .faq-item[open] summary::after{content:"–";}
+  .faq-item p{color:var(--parchment-dim); padding-bottom:20px; margin:0; max-width:640px; font-size:0.96rem;}
+
+  footer{
+    padding:50px 0; text-align:center; border-top:1px solid var(--line);
+  }
+  footer .brand{justify-content:center; margin-bottom:14px;}
+  footer p{color:#7d84a3; font-size:0.84rem; max-width:480px; margin:0 auto;}
+  .footlinks{margin-top:18px; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;}
+  .footlinks a{color:var(--parchment-dim); font-size:0.84rem; text-decoration:none;}
+  .footlinks a:hover{color:var(--gold-bright);}
+</style>
+</head>
+<body>
+
+<div class="sky"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+        <circle cx="13" cy="13" r="11.5" stroke="#C6952B" stroke-width="1.2"/>
+        <circle cx="13" cy="13" r="2.4" fill="#E4B24C"/>
+        <path d="M13 2.5V6M13 20V23.5M2.5 13H6M20 13H23.5" stroke="#C6952B" stroke-width="1"/>
+      </svg>
+      ChaldeanNumbers
+    </div>
+    <ul class="navlinks">
+      <li><a href="#calculator">Calculator</a></li>
+      <li><a href="business-name-numerology-calculator.html">Business Name</a></li>
+      <li><a href="mobile-number-numerology-calculator.html">Mobile Number</a></li>
+      <li><a href="house-number-numerology.html">House Number</a></li>
+      <li><a href="chaldean-vs-pythagorean-numerology.html">Chaldean vs Pythagorean</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">AN ANCIENT BABYLONIAN SYSTEM OF NAME VIBRATION</div>
+    <h1 class="display">Find the number your name has always <em>carried</em></h1>
+    <p class="sub">Type a full name below. The calculator applies the Chaldean letter-value system — the oldest numerology system on record — to reveal its Destiny, Soul Urge and Personality numbers.</p>
+  </div>
+
+  <div class="tablet" id="calculator">
+    <label class="field-label" for="nameInput">Full name</label>
+    <div class="input-row">
+      <input type="text" id="nameInput" placeholder="e.g. Priya Sharma" autocomplete="off">
+      <button class="calc-btn" onclick="calculate()">Calculate</button>
+    </div>
+    <div class="hint">Letters only — numbers and symbols are ignored automatically.</div>
+
+    <div id="results">
+      <div class="result-name" id="resultName">—</div>
+
+      <div class="numbers-grid">
+        <div class="numcard">
+          <div class="label">Destiny</div>
+          <div class="val" id="destinyVal">—</div>
+          <div class="sub">from full name</div>
+        </div>
+        <div class="numcard">
+          <div class="label">Soul Urge</div>
+          <div class="val" id="soulVal">—</div>
+          <div class="sub">from vowels</div>
+        </div>
+        <div class="numcard">
+          <div class="label">Personality</div>
+          <div class="val" id="persVal">—</div>
+          <div class="sub">from consonants</div>
+        </div>
+      </div>
+
+      <div class="compound-note" id="compoundNote"></div>
+
+      <details class="breakdown">
+        <summary>Letter-by-letter breakdown</summary>
+        <table class="letter-table">
+          <thead><tr><th>Letter</th><th>Value</th><th>Type</th></tr></thead>
+          <tbody id="breakdownBody"></tbody>
+        </table>
+      </details>
+    </div>
+  </div>
+</header>
+
+<section id="how-it-works">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">HOW THE SYSTEM WORKS</div>
+      <h2 class="display">Sound, not sequence</h2>
+      <p>Most people meet numerology through the Pythagorean method, which runs straight down the alphabet: A=1, B=2, C=3. Chaldean numerology does something older and stranger — it groups letters by the sound and vibration they carry, so the numbers attached to each letter look scattered rather than sequential.</p>
+    </div>
+    <div class="two-col">
+      <div>
+        <h3 style="font-size:1.1rem; margin-bottom:10px;">The three numbers this tool gives you</h3>
+        <p style="color:var(--parchment-dim); font-size:0.95rem;"><strong style="color:var(--parchment);">Destiny</strong> comes from every letter in the full name — it's read as the overall shape a name pushes a person toward.<br><br>
+        <strong style="color:var(--parchment);">Soul Urge</strong> uses only the vowels — the traditional reading is an inner motivation, the thing a person wants that they don't always say aloud.<br><br>
+        <strong style="color:var(--parchment);">Personality</strong> uses only the consonants — the impression a name gives before anyone gets to know the person behind it.</p>
+      </div>
+      <div>
+        <h3 style="font-size:1.1rem; margin-bottom:10px;">Why the number 9 never appears</h3>
+        <p style="color:var(--parchment-dim); font-size:0.95rem;">In the Chaldean chart, 9 is treated as complete in itself — powerful enough that assigning it to a letter was considered a misuse of it. It can still appear as the <em>result</em> of adding other numbers together, but no letter is ever worth 9 on its own. You'll notice the reference table below skips straight from 8 back to 1.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="reference-table">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">REFERENCE</div>
+      <h2 class="display">The Chaldean letter chart</h2>
+      <p>Every letter maps to a single digit from 1–8, grouped by its traditional planetary ruler.</p>
+    </div>
+    <table class="ref-table">
+      <thead><tr><th class="num">#</th><th>Letters</th><th>Ruling body</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>A, I, J, Q, Y</td><td>Sun</td></tr>
+        <tr><td class="num">2</td><td>B, K, R</td><td>Moon</td></tr>
+        <tr><td class="num">3</td><td>C, G, L, S</td><td>Jupiter</td></tr>
+        <tr><td class="num">4</td><td>D, M, T</td><td>Rahu (lunar node)</td></tr>
+        <tr><td class="num">5</td><td>E, H, N, X</td><td>Mercury</td></tr>
+        <tr><td class="num">6</td><td>U, V, W</td><td>Venus</td></tr>
+        <tr><td class="num">7</td><td>O, Z</td><td>Ketu (lunar node)</td></tr>
+        <tr><td class="num">8</td><td>F, P</td><td>Saturn</td></tr>
+      </tbody>
+    </table>
+    <p class="planet-note">Note: 9 is deliberately left out of this table — see above for why.</p>
+  </div>
+</section>
+
+<section id="meanings">
+  <div class="wrap-wide">
+    <div class="section-head">
+      <div class="kicker">INTERPRETATION</div>
+      <h2 class="display">What each number 1–9 tends to mean</h2>
+      <p>Tap a number for its traditional reading. This is the number left after reducing your compound number down to a single digit.</p>
+    </div>
+    <div class="meanings-grid" id="meaningsGrid"></div>
+  </div>
+</section>
+
+<section class="alt" id="compound">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">BEYOND THE SINGLE DIGIT</div>
+      <h2 class="display">Why the compound number matters too</h2>
+      <p>Two names can reduce to the same single digit and still carry very different weight, because the compound number they came from — the number before it's added down — has its own separate meaning. A 6 built from 15 reads differently to a 6 built from 24.</p>
+    </div>
+    <div class="compound-strip" id="compoundStrip"></div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">QUESTIONS</div>
+      <h2 class="display">Frequently asked</h2>
+    </div>
+    <div id="faqList"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
+      <circle cx="13" cy="13" r="11.5" stroke="#C6952B" stroke-width="1.2"/>
+      <circle cx="13" cy="13" r="2.4" fill="#E4B24C"/>
+    </svg>
+    ChaldeanNumbers
+  </div>
+  <p>Readings on this site are offered for reflection and entertainment. They're not a substitute for professional advice on legal names, finances or major life decisions.</p>
+  <div class="footlinks">
+    <a href="#calculator">Calculator</a>
+    <a href="business-name-numerology-calculator.html">Business Name Calculator</a>
+    <a href="mobile-number-numerology-calculator.html">Mobile Number Calculator</a>
+    <a href="house-number-numerology.html">House Number Calculator</a>
+    <a href="chaldean-vs-pythagorean-numerology.html">Chaldean vs Pythagorean</a>
+    <a href="#faq">FAQ</a>
+  </div>
+</footer>
+
+<script>
+  const CHALDEAN = {
+    A:1,I:1,J:1,Q:1,Y:1,
+    B:2,K:2,R:2,
+    C:3,G:3,L:3,S:3,
+    D:4,M:4,T:4,
+    E:5,H:5,N:5,X:5,
+    U:6,V:6,W:6,
+    O:7,Z:7,
+    F:8,P:8
+  };
+  const VOWELS = new Set(['A','E','I','O','U']);
+
+  function reduceToSingle(n){
+    while(n > 9){
+      n = String(n).split('').reduce((a,d)=>a+parseInt(d,10),0);
+    }
+    return n;
+  }
+
+  const COMPOUND_MEANINGS = {
+    10:"The Wheel of Fortune — rise and fall, but ultimate gain through one's own effort.",
+    11:"A number of hidden trials — spiritual insight, but tested by unexpected obstacles.",
+    13:"Often feared, but really a number of transformation through upheaval and rebuild.",
+    14:"Movement and risk — travel, change, and a warning against overindulgence.",
+    15:"Magnetic charm and warmth, with a pull toward dependency on others.",
+    16:"The Tower — sudden disruption to plans, followed by a forced new direction.",
+    18:"Internal conflict — ambition pulling against opposition, needs careful handling.",
+    19:"The Prince of Heaven — strong, independent success and lasting honour.",
+    22:"Large-scale potential paired with equally large risk if used carelessly.",
+    23:"The Royal Star — protection, help from those in authority, career success.",
+    24:"Gain through partnership — love, assistance, and creative reward.",
+    28:"Strong self-reliance, but a caution against relying on others' promises.",
+    29:"Deception is a theme — advises extra caution in agreements and trust.",
+    32:"A gifted communicator's number — influence through words and persuasion.",
+    33:"A master builder's number — responsibility, service, and steady leadership.",
+    37:"Partnership and friendship that deepens over time into lasting loyalty.",
+    41:"Original ideas that take time to be recognised, rewarding patience.",
+    46:"Practical effort rewarded — building something durable through steady work.",
+    51:"Leadership through decisive action, with a warning against acting too fast.",
+    52:"Resourcefulness under pressure — recovery and strength after setbacks."
+  };
+
+  const MEANINGS = {
+    1:{title:"Leadership, drive", body:"Independent and self-starting. Sits well with people who'd rather originate something than follow an existing path."},
+    2:{title:"Partnership, tact", body:"Sensitive to others and skilled at diplomacy. Works best in collaboration rather than solo pursuit."},
+    3:{title:"Expression, optimism", body:"Creative and outward-facing. Drawn to communication, performance, and expanding whatever it touches."},
+    4:{title:"Structure, discipline", body:"Grounded and methodical. Builds slowly but tends to build things that last."},
+    5:{title:"Change, curiosity", body:"Quick-thinking and adaptable, uncomfortable sitting still for long. Thrives on variety."},
+    6:{title:"Responsibility, care", body:"Domestic and relationship-oriented. Feels a pull toward looking after others and creating harmony."},
+    7:{title:"Reflection, depth", body:"Introspective and analytical. More drawn to understanding a thing than displaying it."},
+    8:{title:"Ambition, material result", body:"Focused on tangible achievement — money, status, authority. Rewards sustained effort."},
+    9:{title:"Completion, idealism", body:"Generous and humanitarian in outlook. Marks an ending or a wide, impersonal kind of care for others."}
+  };
+
+  const FAQS = [
+    ["What's the actual difference between Chaldean and Pythagorean numerology?",
+     "They disagree on how letters get their numbers. Pythagorean numerology runs sequentially through the alphabet, so A, J and S are all different values. Chaldean numerology groups letters by sound and vibration instead, which is why its chart looks irregular at first. Chaldean also puts real weight on the compound number (10–52) before it's reduced, where Pythagorean numerology mostly cares about the final single digit."],
+    ["Why does 9 never get assigned to a letter?",
+     "Tradition holds that 9 represents a completed cycle — a number too whole to be handed to one letter. It still turns up naturally whenever digits are added together (like 4+5), just never as a starting value."],
+    ["Is the compound number or the single digit more important?",
+     "Both, for different reasons. The single digit describes the general theme; the compound number underneath it explains why that theme shows up the way it does. Two names can share a single digit and still read very differently once you look at the compound number behind it."],
+    ["Can I use this for a business name?",
+     "Yes — the same letter values apply. Business names are often read for how the outside world (customers, partners) will perceive the brand, so a compound number associated with growth or protection is generally preferred over one associated with conflict."],
+    ["Does changing the spelling of a name really change the number?",
+     "Within this system, yes — adding or removing even one letter shifts the total. That's the basis of the 'name correction' practice some people use, testing spelling variants until the compound number lands somewhere they consider favourable."],
+    ["Is this scientifically validated?",
+     "No. Numerology is a symbolic and traditional practice, not an empirically tested one. This tool applies the classical Chaldean method faithfully, but the results are best treated as a lens for reflection rather than fact."]
+  ];
+
+  function buildMeanings(){
+    const grid = document.getElementById('meaningsGrid');
+    Object.keys(MEANINGS).forEach(n=>{
+      const m = MEANINGS[n];
+      const card = document.createElement('div');
+      card.className = 'meaning-card';
+      card.innerHTML = `<div class="mnum">${n}</div><div class="mtitle">${m.title}</div><div class="mbody"><p>${m.body}</p></div>`;
+      card.addEventListener('click', ()=> card.classList.toggle('open'));
+      grid.appendChild(card);
+    });
+  }
+
+  function buildCompoundStrip(){
+    const strip = document.getElementById('compoundStrip');
+    [19,23,24,33,16,29].forEach(n=>{
+      const item = document.createElement('div');
+      item.className = 'compound-item';
+      item.innerHTML = `<div class="cn">${n}</div><div class="ct">${COMPOUND_MEANINGS[n]}</div>`;
+      strip.appendChild(item);
+    });
+  }
+
+  function buildFAQ(){
+    const list = document.getElementById('faqList');
+    FAQS.forEach(([q,a])=>{
+      const d = document.createElement('details');
+      d.className = 'faq-item';
+      d.innerHTML = `<summary>${q}</summary><p>${a}</p>`;
+      list.appendChild(d);
+    });
+  }
+
+  function calculate(){
+    const raw = document.getElementById('nameInput').value.trim();
+    if(!raw) return;
+    const letters = raw.toUpperCase().replace(/[^A-Z]/g,'').split('');
+    if(letters.length === 0) return;
+
+    let destinySum = 0, soulSum = 0, persSum = 0;
+    const rows = [];
+
+    letters.forEach(ch=>{
+      const val = CHALDEAN[ch];
+      if(val === undefined) return;
+      destinySum += val;
+      const isVowel = VOWELS.has(ch);
+      if(isVowel) soulSum += val; else persSum += val;
+      rows.push({ch, val, type:isVowel?'Vowel':'Consonant'});
+    });
+
+    const destinySingle = reduceToSingle(destinySum);
+    const soulSingle = reduceToSingle(soulSum);
+    const persSingle = reduceToSingle(persSum);
+
+    document.getElementById('resultName').textContent = raw;
+    document.getElementById('destinyVal').textContent = destinySingle;
+    document.getElementById('soulVal').textContent = soulSingle;
+    document.getElementById('persVal').textContent = persSingle;
+
+    const cm = COMPOUND_MEANINGS[destinySum];
+    const noteEl = document.getElementById('compoundNote');
+    if(cm){
+      noteEl.innerHTML = `<strong>Compound number ${destinySum}</strong> — ${cm}`;
+    } else {
+      const m = MEANINGS[destinySingle];
+      noteEl.innerHTML = `<strong>Compound number ${destinySum}</strong>, reducing to <strong>${destinySingle}</strong> — ${m ? m.title.toLowerCase() : ''}.`;
+    }
+
+    const body = document.getElementById('breakdownBody');
+    body.innerHTML = '';
+    rows.forEach(r=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.ch}</td><td>${r.val}</td><td>${r.type}</td>`;
+      body.appendChild(tr);
+    });
+
+    document.getElementById('results').classList.add('show');
+  }
+
+  document.getElementById('nameInput').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') calculate();
+  });
+
+  buildMeanings();
+  buildCompoundStrip();
+  buildFAQ();
+</script>
+
+</body>
+</html>
